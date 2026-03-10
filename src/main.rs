@@ -2,9 +2,11 @@ use std::{fmt, fs, process::Command};
 
 mod erros;
 mod parser;
+mod config;
 
 use parser::parse_cue;
-//use erros::FFmpregError;
+
+use crate::{config::parse_config, erros::{ConfigError, FFmpregError}};
 
 pub struct Time {
     pub minutes: u8, 
@@ -29,78 +31,97 @@ impl fmt::Display for Time {
 
 #[derive(Default)]
 pub struct CueSheet {
-    pub files: Vec<File>,
-    pub comments: Vec<String>,
-    pub catalog: Option<String>,
+    pub files       : Vec<File>,
+    pub comments    : Vec<String>,
+    pub catalog     : Option<String>,
     pub cd_text_file: Option<String>
 }
 
 pub struct File {
-    pub filename: String,
+    pub filename : String,
     pub file_type: String,
     pub performer: Option<String>,
-    pub title: Option<String>,
-    pub tracks: Vec<Track>
+    pub title    : Option<String>,
+    pub tracks   : Vec<Track>
 }
 
 pub struct Track {
-    pub number: u8,
+    pub number    : u8,
     pub track_type: String,
-    pub isrc: Option<String>,
-    pub flags: Vec<String>,
-    pub indexes: Vec<Index>,
-    pub performer: Option<String>,
+    pub isrc      : Option<String>,
+    pub flags     : Vec<String>,
+    pub indexes   : Vec<Index>,
+    pub performer : Option<String>,
     pub songwriter: Option<String>,
-    pub title: Option<String>,
-    pub pregap: Option<Time>,
-    pub postgap: Option<Time>
+    pub title     : Option<String>,
+    pub pregap    : Option<Time>,
+    pub postgap   : Option<Time>
 }
 
 pub struct Index {
     pub number: u8,
-    pub time: Time
+    pub time  : Time
 }
 
-pub fn check_ffmpreg() -> bool {
-    Command::new("ffmpeg").arg("-version").output().is_ok()
+pub fn check_ffmpreg(ffmpeg_cmd: &str) -> bool {
+    Command::new(ffmpeg_cmd).arg("-version").output().is_ok()
 }
 
 fn print_parsed_cue(cue: &CueSheet) {
     println!("CUE file parsed successfully:");
-        println!("  Files: {}", cue.files.len());
-        for file in &cue.files {
-            println!("  FILE: {} ({})", file.filename, file.file_type);
-            println!("  Tracks: {}", file.tracks.len());
-            if let Some(album) = &file.title {
-                println!("  Album: {}", album);
+    println!("  Files: {}", cue.files.len());
+    for file in &cue.files {
+        println!("  FILE: {} ({})", file.filename, file.file_type);
+        println!("  Tracks: {}", file.tracks.len());
+        if let Some(album) = &file.title {
+            println!("  Album: {}", album);
+        }
+        for track in &file.tracks {
+            println!("    Track {:02}: {}", track.number, track.track_type);
+            if let Some(title) = &track.title {
+                println!("      Title: {}", title);
             }
-            for track in &file.tracks {
-                println!("    Track {:02}: {}", track.number, track.track_type);
-                if let Some(title) = &track.title {
-                    println!("      Title: {}", title);
-                }
-                if let Some(performer) = &track.performer {
-                    println!("      Performer: {}", performer);
-                }
-                for index in &track.indexes {
-                    println!("      INDEX {:02}: {}", index.number, index.time);
-                }
+            if let Some(performer) = &track.performer {
+                println!("      Performer: {}", performer);
+            }
+            for index in &track.indexes {
+                println!("      INDEX {:02}: {}", index.number, index.time);
             }
         }
+    }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let file_path = "/Aspid.cue";
+fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let cli = parse_config()?;
 
-    if !check_ffmpreg() {
-        eprintln!("Error: FFmpeg not found in PATH. Please install FFmpeg or provide custom path via -p flag.");
-        std::process::exit(1);
+    if !cli.dry_run && !check_ffmpreg(&cli.ffmpreg_path) {
+        return Err(Box::new(FFmpregError::NotFound));
     }
 
-    let cue_content = fs::read_to_string(file_path)?;
+    let cue_content = match cli.input_cue.as_ref() {
+        Some(path) => {
+            fs::read_to_string(path)?
+        }
+        None => return Err(Box::new(ConfigError::UnspecifiedCue)),
+    };
+
     let cue = parse_cue(&cue_content)?;
 
-    print_parsed_cue(&cue);
+    if cli.verbose {
+        print_parsed_cue(&cue);
+    }
+
+    if cli.dry_run {
+        println!("Dry run - no files will be created");
+        return Ok(())
+    }
 
     Ok(())
+}
+
+fn main() {
+    if let Err(e) = run() {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
 }

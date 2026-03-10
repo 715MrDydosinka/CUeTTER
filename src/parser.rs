@@ -24,7 +24,7 @@ fn parse_quoted_string(args: &[&str]) -> Result<String, ParseError> {
         }
         
         if !result.ends_with('"') {
-            return Err(ParseError::InvalidString("Unterminated quoted string".to_string(),));}
+            return Err(ParseError::InvalidString("Unterminated quoted string".to_string()));}
         result.pop();
     } else {
         result = args.join(" ");
