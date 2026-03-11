@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -13,15 +13,18 @@ pub enum ParseError {
 pub enum FFmpregError {
     NotFound,
     CommandFailed(String),
-    OutputFileError(String),
-    InvalidTime(String),
+    InputFileError(String),
+    //OutputFileError(String),
+    EmptyCue(String),
 }
 
 #[derive(Debug)]
 pub enum ConfigError {
     FileNotFound(String),
     InvalidNumber(String),
-    UnspecifiedCue
+    UnspecifiedCue,
+    GetHelp,
+    GetAbout
 }
 
 impl fmt::Display for ParseError {
@@ -41,8 +44,9 @@ impl fmt::Display for FFmpregError {
         match self {
             FFmpregError::NotFound                    => write!(f, "FFmpeg not found in PATH. Please install FFmpeg or provide custom path via 'ffmpeg' enviroment variable."),
             FFmpregError::CommandFailed(s)   => write!(f, "FFmpeg command failed: {}", s),
-            FFmpregError::OutputFileError(s) => write!(f, "Output file error: {}", s),
-            FFmpregError::InvalidTime(s)     => write!(f, "Invalid time format: {}", s),
+            FFmpregError::InputFileError(s)  => write!(f, "Audio track not specified or missing: {}", s),
+            //FFmpregError::OutputFileError(s) => write!(f, "Output file error: {}", s),
+            FFmpregError::EmptyCue(s)        => write!(f, "{}", s),
         }
     }
 }
@@ -52,7 +56,9 @@ impl fmt::Display for ConfigError {
         match self {
             ConfigError::FileNotFound(s)  => write!(f, "File not found: {}", s),
             ConfigError::InvalidNumber(s) => write!(f, "Invalid number: {}", s),
-            ConfigError::UnspecifiedCue => write!(f, "Cue file not specified. Use -h (--help) to read more")
+            ConfigError::UnspecifiedCue            => write!(f, "Cue file not specified. Use -h (--help) to read more"),
+            ConfigError::GetHelp                   => write!(f, ""),
+            ConfigError::GetAbout                  => write!(f, "")
         }
     }
 }

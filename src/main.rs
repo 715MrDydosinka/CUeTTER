@@ -3,11 +3,13 @@ use std::{fmt, fs, process::Command};
 mod erros;
 mod parser;
 mod config;
+mod splitter;
 
 use parser::parse_cue;
 
-use crate::{config::parse_config, erros::{ConfigError, FFmpregError}};
+use crate::{config::parse_config, erros::{ConfigError, FFmpregError}, splitter::split};
 
+#[derive(Clone)]
 pub struct Time {
     pub minutes: u8, 
     pub seconds: u8,
@@ -36,6 +38,7 @@ pub struct CueSheet {
     pub catalog     : Option<String>,
     pub cd_text_file: Option<String>
 }
+
 
 pub struct File {
     pub filename : String,
@@ -111,9 +114,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         print_parsed_cue(&cue);
     }
 
-    if cli.dry_run {
-        println!("Dry run - no files will be created");
-        return Ok(())
+    let hui = split(cue, &cli)?;
+
+    for i in hui {
+        println!("Output: {}", i.display().to_string())
     }
 
     Ok(())
@@ -121,7 +125,19 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("Error: {}", e);
-        std::process::exit(1);
+
+        match e.downcast_ref::<ConfigError>() {
+            Some(ConfigError::GetAbout) => {
+                println!("About")
+            },
+            Some(ConfigError::GetHelp) => {
+                println!("Help")
+            },
+            _ => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+            }
+        }
+        
     }
 }
