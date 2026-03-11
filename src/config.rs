@@ -1,26 +1,6 @@
 use std::env;
 use std::collections::HashMap;
 use crate::erros::ConfigError;
-
-//cuetter
-// -i (--input) [audio]
-// -o (--output) [dir]
-// -a (--album-cover) [file]
-// -f (--format) [flac / mp3 / wav / etc...]
-// -b [--bitrate] [number]
-// -r [--sample-rate] [number]
-// -c [--channels] [number]
-// --embed-metadata 
-// --embed-cue
-// -w [--overwrite]
-// --pregap
-// --postgap
-// -n [--dry-run]
-// -v [verbose]
-// --version
-
-// -- [args] to pass in ffmpreg
-
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -180,7 +160,7 @@ pub fn parse_config() -> Result<Config, ConfigError> {
         match arg.as_str() {
             "-v" | "--verbose"       => config.verbose         = true,
             "-e" | "--embed-cue"     => config.embed_cue       = true,
-            "-s" | "--skip_metadata" => config.skip_metadata   = true,
+            "-s" | "--skip-metadata" => config.skip_metadata   = true,
             "-n" | "--dry-run"       => config.dry_run         = true,
             "-w" | "--overwrite"     => config.overwrite       = true,
             "-h" | "--help"          => Err(ConfigError::ShowHelp)?,

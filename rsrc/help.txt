@@ -34,7 +34,7 @@ COVER ART
                               (requires ffmpeg with image2 support)
 
 METADATA
-    --embed-metadata           Copy metadata from input/CUE to output files
+    --skip-metadata           Skip embeding metadata from CUE to output files
                               Maps to: -map_metadata 0 -id3v2_version 3
     --embed-cue                Embed original CUE sheet in tracks metadata
                               Maps to: -metadata CUE="{cue_content}"

@@ -144,8 +144,8 @@ fn main() {
                 print_help();
             },
             _ => {
-            eprintln!("Error: {}", e);
-            std::process::exit(1);
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
             }
         }
         
