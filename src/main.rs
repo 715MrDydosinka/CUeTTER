@@ -1,3 +1,5 @@
+
+
 use std::{fmt, fs, process::Command};
 
 mod erros;
@@ -123,15 +125,23 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn print_help() {
+    println!("{}", include_str!("../rsrc/help.txt"));
+}
+
+fn print_about() {
+    println!("{}", include_str!("../rsrc/about.txt"));
+}
+
 fn main() {
     if let Err(e) = run() {
 
         match e.downcast_ref::<ConfigError>() {
-            Some(ConfigError::GetAbout) => {
-                println!("About")
+            Some(ConfigError::ShowAbout) => {
+                print_about();
             },
-            Some(ConfigError::GetHelp) => {
-                println!("Help")
+            Some(ConfigError::ShowHelp) => {
+                print_help();
             },
             _ => {
             eprintln!("Error: {}", e);

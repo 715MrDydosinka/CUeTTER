@@ -23,8 +23,8 @@ pub enum ConfigError {
     FileNotFound(String),
     InvalidNumber(String),
     UnspecifiedCue,
-    GetHelp,
-    GetAbout
+    ShowHelp,
+    ShowAbout
 }
 
 impl fmt::Display for ParseError {
@@ -57,8 +57,8 @@ impl fmt::Display for ConfigError {
             ConfigError::FileNotFound(s)  => write!(f, "File not found: {}", s),
             ConfigError::InvalidNumber(s) => write!(f, "Invalid number: {}", s),
             ConfigError::UnspecifiedCue            => write!(f, "Cue file not specified. Use -h (--help) to read more"),
-            ConfigError::GetHelp                   => write!(f, ""),
-            ConfigError::GetAbout                  => write!(f, "")
+            ConfigError::ShowHelp                  => write!(f, ""),
+            ConfigError::ShowAbout                 => write!(f, "")
         }
     }
 }
