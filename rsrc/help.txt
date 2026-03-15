@@ -3,11 +3,22 @@ CUeTTER - ffmpeg wrapper for splitting audio by CUE sheets
 
 SYNOPSIS
     cuetter <cue-file> [OPTIONS] [-- FFMPEG_ARGS]
+    cat <cue-file> | cuetter [OPTIONS] [-- FFMPEG_ARGS]
 
 DESCRIPTION
     A convenient wrapper around ffmpeg that splits audio files according to
     CUE sheet timing information. All heavy lifting is done by ffmpeg - this
     tool simply generates and executes the appropriate ffmpeg commands.
+
+    The CUE sheet can be provided either as a file path or via stdin
+    by using piping.
+
+    AUDIO FILE DISCOVERY:
+    You can either specify the audio file explicitly with -i/--input, or let
+    the tool automatically find it. When -i is omitted, the tool will:
+      1. Parse the CUE sheet to find the referenced audio filename
+      2. Look for this file in the same directory as the CUE sheet
+      3. If not found, look in the current working directory (./)
 
 REQUIRED
     -i, --input <file>        Input audio file (any format supported by ffmpeg)
@@ -59,7 +70,7 @@ FFMPEG PASSTHROUGH
 
 EXAMPLES
     Basic split:
-        cuetter album.cue -o ./tracks
+        cuetter album.cue -o ./tracks/
 
     Split to high-quality MP3:
         cuetter album.cue -f mp3 -b 320k -o ./mp3s
@@ -73,10 +84,12 @@ EXAMPLES
     Pass additional ffmpeg filters:
         cuetter album.cue -o ./tracks -- -af "loudnorm"
 
+    Using windows-1251 encoded cue file:
+        iconv -f windows-1251 -t utf-8 album.cue | cuetter -i ~/album/
+
 DEPENDENCIES
     ffmpeg - Must be installed and accessible in PATH or 
         provided via enviroment variable 'ffmpeg='
-    Supported on: Linux, macOS, Windows (WSL/Cygwin)
 
 AUTHOR
     Written by Hlupa (aka Hlupich, aka 715MrDydosinka (t.me/@mr_dydosinka))
@@ -84,3 +97,6 @@ AUTHOR
 
 REPORTING BUGS
     Report bugs to: Nowhere
+
+LICENSE
+    Fuck Your License (https://github.com/715MrDydosinka/CUeTTER/LICENSE)

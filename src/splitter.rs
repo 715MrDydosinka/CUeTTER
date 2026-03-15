@@ -1,5 +1,4 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::CueSheet;
@@ -22,15 +21,22 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
         return Err(Box::new(FFmpregError::EmptyCue("No FILE entries found in CUE sheet".into())))
     }
     
-    let audio_path = match &config.input_file {
-        Some(path) => path.to_path_buf(),
-        None => {
-            let cue_dir = config.input_cue.clone().unwrap_or_else(|| PathBuf::from("."));
-            let cue_dir_parent = cue_dir.parent().unwrap_or_else(|| Path::new("."));
-            let audio_filename = &cue.files[0].filename;
-            cue_dir_parent.join(audio_filename)
+    let audio_path = match &config.input {
+    Some(path) => {
+        let pt = path.to_path_buf();
+
+        if pt.is_dir() {
+            pt.join(&cue.files[0].filename)
+        } else {
+            pt
         }
-    };
+    },
+    None => {
+        let cue_dir = PathBuf::from(".");
+        let audio_filename = &cue.files[0].filename;
+        cue_dir.join(audio_filename)
+    }
+};
     
     if !audio_path.exists() {
         return Err(Box::new(FFmpregError::InputFileError(audio_path.display().to_string())))
@@ -153,21 +159,21 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
                 }
             }
 
-            if config.embed_cue {
-                match &config.input_cue {
-                    Some(cue_path) => {
-                        match fs::read_to_string(cue_path) {
-                            Ok(cue_content) => {
-                                cmd.arg("-metadata").arg(format!("CUE={}", cue_content));
-                            }
-                            Err(e) => {
-                                eprintln!("Failed to read CUE file {}: {}", cue_path.display(), e);
-                            }
-                        }
-                    }
-                    None => { }
-                }
-            }
+            //if config.embed_cue {
+            //    match &config.input {
+            //        Some(cue_path) => {
+            //            match fs::read_to_string(cue_path) {
+            //                Ok(cue_content) => {
+            //                    cmd.arg("-metadata").arg(format!("CUE={}", cue_content));
+            //                }
+            //                Err(e) => {
+            //                    eprintln!("Failed to read CUE file {}: {}", cue_path.display(), e);
+            //                }
+            //            }
+            //        }
+            //        None => { }
+            //    }
+            //}
             
             for arg in &config.extra_args {
                 cmd.arg(arg);

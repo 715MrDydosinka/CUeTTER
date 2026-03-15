@@ -6,10 +6,13 @@ mod erros;
 mod parser;
 mod config;
 mod splitter;
+mod pipe;
+
+use pipe::read_pipe;
 
 use parser::parse_cue;
 
-use crate::{config::parse_config, erros::{ConfigError, FFmpregError}, splitter::split};
+use crate::{config::parse_config, erros::{ConfigError, FFmpregError, PipeError}, splitter::split};
 
 #[derive(Clone)]
 pub struct Time {
@@ -97,17 +100,30 @@ fn print_parsed_cue(cue: &CueSheet) {
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
+
     let cli = parse_config()?;
 
     if !cli.dry_run && !check_ffmpreg(&cli.ffmpreg_path) {
         return Err(Box::new(FFmpregError::NotFound));
     }
 
-    let cue_content = match cli.input_cue.as_ref() {
-        Some(path) => {
-            fs::read_to_string(path)?
+    let cue_content = match read_pipe() {
+        Ok(sheet) => 
+        {
+            println!("Using pipe, Cue path argument will be ignored");
+            sheet
+        },
+        Err(e) => {
+            match e {
+                PipeError::OtherErr(s) => { eprintln!("{}, ignoring piped input...", s) }
+                _ => {}
+            }
+            
+            match cli.input.as_ref() {
+                Some(path) => { fs::read_to_string(path)? },
+                None => return Err(Box::new(ConfigError::UnspecifiedCue)),
+            }
         }
-        None => return Err(Box::new(ConfigError::UnspecifiedCue)),
     };
 
     let cue = parse_cue(&cue_content)?;

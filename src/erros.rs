@@ -14,7 +14,6 @@ pub enum FFmpregError {
     NotFound,
     CommandFailed(String),
     InputFileError(String),
-    //OutputFileError(String),
     EmptyCue(String),
 }
 
@@ -25,6 +24,13 @@ pub enum ConfigError {
     UnspecifiedCue,
     ShowHelp,
     ShowAbout
+}
+
+#[derive(Debug)]
+pub enum PipeError {
+    EmptyPipe,
+    BinaryPipe,
+    OtherErr(String)
 }
 
 impl fmt::Display for ParseError {
@@ -44,8 +50,7 @@ impl fmt::Display for FFmpregError {
         match self {
             FFmpregError::NotFound                    => write!(f, "FFmpeg not found in PATH. Please install FFmpeg or provide custom path via 'ffmpeg' enviroment variable."),
             FFmpregError::CommandFailed(s)   => write!(f, "FFmpeg command failed: {}", s),
-            FFmpregError::InputFileError(s)  => write!(f, "Audio track not specified or missing: {}", s),
-            //FFmpregError::OutputFileError(s) => write!(f, "Output file error: {}", s),
+            FFmpregError::InputFileError(s)  => write!(f, "Couldn't find audio track: {}. Use -i to provide path to file or directory with it", s),
             FFmpregError::EmptyCue(s)        => write!(f, "{}", s),
         }
     }
@@ -63,6 +68,17 @@ impl fmt::Display for ConfigError {
     }
 }
 
+impl fmt::Display for PipeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PipeError::BinaryPipe          => write!(f, "Piped data are binary slop, ignoring..."),
+            PipeError::EmptyPipe            => write!(f, ""),
+            PipeError::OtherErr(s) => write!(f, "{}", s)
+        }
+    }
+}
+
 impl std::error::Error for ParseError   {}
 impl std::error::Error for FFmpregError {}
 impl std::error::Error for ConfigError  {}
+impl std::error::Error for PipeError    {}

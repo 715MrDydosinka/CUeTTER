@@ -6,8 +6,7 @@ use std::path::PathBuf;
 #[derive(Default)]
 pub struct Config {
     pub ffmpreg_path  : String,
-    pub input_cue     : Option<PathBuf>,
-    pub input_file    : Option<PathBuf>,
+    pub input         : Option<PathBuf>,
     pub output_dir    : Option<PathBuf>,
     pub album_cover   : Option<PathBuf>,
     pub format        : String,
@@ -28,8 +27,7 @@ pub struct Config {
 impl Config {
     pub fn default() -> Self {
         Config { 
-            input_cue      : None,
-            input_file     : None,
+            input          : None,
             album_cover    : None,
             ffmpreg_path   : "ffmpeg".to_owned(),
             format         : "flac".to_owned(), 
@@ -134,12 +132,13 @@ impl Args {
 }
 
 fn validate_input_path(path_str: &str) -> Result<PathBuf, ConfigError> {
-    let path = PathBuf::from(path_str);
-    if path.exists() {
-        Ok(path)
-    } else {
-        Err(ConfigError::FileNotFound(path.display().to_string()))
-    }
+    let path = validate_output_path(path_str);
+    
+    if !path.exists() {
+        return Err(ConfigError::FileNotFound(path.display().to_string()));
+    } 
+
+    Ok(path)
 }
 
 fn validate_output_path(path_str: &str) -> PathBuf {
@@ -173,7 +172,7 @@ pub fn parse_config() -> Result<Config, ConfigError> {
 
     for (a, b) in &args.options {
         match a.as_ref() {
-            "-i" | "--input"       => config.input_file  = Some(validate_input_path(b)?),
+            "-i" | "--input"       => config.input       = Some(validate_input_path(b)?),
             "-o" | "--output"      => config.output_dir  = Some(validate_output_path(b)),
             "-a" | "--album-cover" => config.album_cover = Some(validate_output_path(b)),
             "-f" | "--format"      => config.format      = b.clone(),
@@ -184,9 +183,9 @@ pub fn parse_config() -> Result<Config, ConfigError> {
         }
     }
     
-    if !&args.positionals.is_empty() {
-        config.input_cue = Some(validate_input_path(&args.positionals[0])?);
-    }
+    //if !&args.positionals.is_empty() {
+    //    config.input_cue = Some(validate_input_path(&args.positionals[0])?);
+    //}
 
     config.validate()?;
 
