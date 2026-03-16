@@ -6,7 +6,8 @@ use std::path::PathBuf;
 #[derive(Default)]
 pub struct Config {
     pub ffmpreg_path  : String,
-    pub input         : Option<PathBuf>,
+    pub input_cue     : Option<PathBuf>, 
+    pub input_audio   : Option<PathBuf>,
     pub output_dir    : Option<PathBuf>,
     pub album_cover   : Option<PathBuf>,
     pub format        : String,
@@ -27,7 +28,8 @@ pub struct Config {
 impl Config {
     pub fn default() -> Self {
         Config { 
-            input          : None,
+            input_cue      : None,
+            input_audio    : None,
             album_cover    : None,
             ffmpreg_path   : "ffmpeg".to_owned(),
             format         : "flac".to_owned(), 
@@ -172,7 +174,7 @@ pub fn parse_config() -> Result<Config, ConfigError> {
 
     for (a, b) in &args.options {
         match a.as_ref() {
-            "-i" | "--input"       => config.input       = Some(validate_input_path(b)?),
+            "-i" | "--input"       => config.input_audio = Some(validate_input_path(b)?),
             "-o" | "--output"      => config.output_dir  = Some(validate_output_path(b)),
             "-a" | "--album-cover" => config.album_cover = Some(validate_output_path(b)),
             "-f" | "--format"      => config.format      = b.clone(),
@@ -182,10 +184,10 @@ pub fn parse_config() -> Result<Config, ConfigError> {
             _ => eprintln!("Unknown argument or bad usage: {}", a)
         }
     }
-    
-    //if !&args.positionals.is_empty() {
-    //    config.input_cue = Some(validate_input_path(&args.positionals[0])?);
-    //}
+
+    if !&args.positionals.is_empty() {
+        config.input_cue = Some(validate_input_path(&args.positionals[0])?);
+    }
 
     config.validate()?;
 

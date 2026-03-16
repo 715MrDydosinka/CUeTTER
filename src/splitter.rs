@@ -21,7 +21,7 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
         return Err(Box::new(FFmpregError::EmptyCue("No FILE entries found in CUE sheet".into())))
     }
     
-    let audio_path = match &config.input {
+    let audio_path = match &config.input_audio {
     Some(path) => {
         let pt = path.to_path_buf();
 
@@ -32,11 +32,16 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
         }
     },
     None => {
-        let cue_dir = PathBuf::from(".");
+        let cue_dir: PathBuf = match &config.input_cue {
+            Some(path) if path.is_file() => path.parent().unwrap_or(path).to_path_buf(),
+            Some(path) => path.to_path_buf(),
+            None => PathBuf::from(".")
+        };
+
         let audio_filename = &cue.files[0].filename;
         cue_dir.join(audio_filename)
-    }
-};
+        }
+    };
     
     if !audio_path.exists() {
         return Err(Box::new(FFmpregError::InputFileError(audio_path.display().to_string())))

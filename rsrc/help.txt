@@ -14,11 +14,16 @@ DESCRIPTION
     by using piping.
 
     AUDIO FILE DISCOVERY:
-    You can either specify the audio file explicitly with -i/--input, or let
-    the tool automatically find it. When -i is omitted, the tool will:
-      1. Parse the CUE sheet to find the referenced audio filename
-      2. Look for this file in the same directory as the CUE sheet
-      3. If not found, look in the current working directory (./)
+
+    1. Manual Specification
+        Use -i/--input to explicitly point to your audio file:
+        If you provide a file path → uses that file directly
+        If you provide a directory → looks for the audio file (from CUE) inside that directory
+
+    2. Auto-discovery (when -i is omitted)
+        First looks in the same folder as your CUE sheet
+        Then falls back to your current working directory (./)
+        If CUE is piped via stdin → only searches current directory
 
 REQUIRED
     -i, --input <file>        Input audio file (any format supported by ffmpeg)

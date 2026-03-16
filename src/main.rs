@@ -119,10 +119,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 _ => {}
             }
             
-            match cli.input.as_ref() {
+            match cli.input_cue.as_ref() {
                 Some(path) => { fs::read_to_string(path)? },
                 None => return Err(Box::new(ConfigError::UnspecifiedCue)),
             }
+
+
         }
     };
 
