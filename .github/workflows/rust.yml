@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Update release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          name: "Latest Build"
+          tag: "latest"
+          commit: ${{ github.sha }}
+          artifacts: "target/release/CUeTTER"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: false
