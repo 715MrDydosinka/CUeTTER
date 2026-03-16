@@ -20,13 +20,20 @@ jobs:
       - name: Build release binary
         run: cargo build --release
 
+      - name: Rename binary for release
+        run: cp target/release/cuetter target/release/cuetter-linux-amd64
+
+      - name: Verify binary
+        run: ls -la target/release/
+
       - name: Update release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          name: "Latest Build"
+          makeLatest: true
+          name: "Latest Development Build"
           tag: "latest"
           commit: ${{ github.sha }}
-          artifacts: "target/release/CUeTTER"
+          artifacts: "target/release/cuetter-linux-amd64"
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: false
