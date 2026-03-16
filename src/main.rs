@@ -123,8 +123,6 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 Some(path) => { fs::read_to_string(path)? },
                 None => return Err(Box::new(ConfigError::UnspecifiedCue)),
             }
-
-
         }
     };
 
@@ -134,11 +132,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         print_parsed_cue(&cue);
     }
 
-    let hui = split(cue, &cli)?;
+    let _ = split(cue, &cli)?;
 
-    for i in hui {
-        println!("Output: {}", i.display().to_string())
-    }
+    //for i in hui {
+    //    println!("Output: {}", i.display().to_string())
+    //}
 
     Ok(())
 }

@@ -1,3 +1,2 @@
-CUeTTER ver: 0.002.1
-
+CUeTTER ver: xxx
 Use --help to get help :)

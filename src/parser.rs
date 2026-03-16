@@ -124,7 +124,7 @@ pub fn parse_cue(input: &str) -> Result<CueSheet, ParseError> {
                 if let Some(track) = current_track.as_mut() {
                     track.performer = Some(performer);
                 } else if let Some(file) = current_file.as_mut() {
-                    file.performer = Some(performer)
+                    file.performer = Some(performer);
                 }
                 else if buf_performer.is_none() {
                     buf_performer = Some(performer);
@@ -171,7 +171,7 @@ pub fn parse_cue(input: &str) -> Result<CueSheet, ParseError> {
                     filename,
                     file_type,
                     tracks: Vec::new(),
-                    performer: None,
+                    performer: buf_performer.clone(),
                     title: buf_title.clone(),
                 });
             }
@@ -197,9 +197,9 @@ pub fn parse_cue(input: &str) -> Result<CueSheet, ParseError> {
                     isrc: None,
                     flags: Vec::new(),
                     indexes: Vec::new(),
-                    performer: None,
-                    songwriter: None,
-                    title: None,
+                    performer: buf_performer.clone(),
+                    songwriter: buf_songwriter.clone(),
+                    title: buf_title.clone(),
                     pregap: None,
                     postgap: None
                 });

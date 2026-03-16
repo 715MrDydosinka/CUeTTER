@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use crate::CueSheet;
 use crate::config::Config;
@@ -104,6 +104,14 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
             }
             
             let mut cmd = Command::new("ffmpeg");
+
+            if !&config.verbose {
+                cmd.stdin(Stdio::null());
+                cmd.stderr(Stdio::null());
+                cmd.stdout(Stdio::null());
+            }
+            
+
             cmd.arg("-i").arg(format!("{}", audio_path.display().to_string()));
             
             cmd.arg("-ss").arg(effective_start.as_seconds().to_string());
@@ -132,33 +140,34 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
                     cmd.arg("-metadata").arg(format!("ALBUM={}", album ));
                 }
                 if let Some(performer) = &track.performer {
-                    cmd.arg("-metadata").arg(format!("artist={}", performer));
+                    cmd.arg("-metadata").arg(format!("ARTIST={}", &performer));
+                    cmd.arg("-metadata").arg(format!("PERFORMER={}", performer));
                 }
                 if let Some(title) = &track.title {
-                    
-                    cmd.arg("-metadata").arg(format!("title={}", &title));
+                    cmd.arg("-metadata").arg(format!("TITLE={}", &title));
                 }
                 if let Some(songwriter) = &track.songwriter {
-                    cmd.arg("-metadata").arg(format!("composer={}", songwriter));
+                    cmd.arg("-metadata").arg(format!("COMPOSER={}", songwriter));
                 }
                 if let Some(isrc) = &track.isrc {
-                    cmd.arg("-metadata").arg(format!("isrc={}", isrc));
+                    cmd.arg("-metadata").arg(format!("ISRC={}", isrc));
                 }
 
-                cmd.arg("-metadata").arg(format!("track={}", track.number));
+                cmd.arg("-metadata").arg(format!("TRACK={}", &track.number));
+                cmd.arg("-metadata").arg(format!("TRACKNUMBER={}", track.number));
                 
-                cmd.arg("-metadata").arg(format!("totaltracks={}", file_entry.tracks.len()));
+                cmd.arg("-metadata").arg(format!("TOTALTRACKS={}", file_entry.tracks.len()));
                 
                 for comment in &cue.comments {
                     if comment.starts_with("REM DATE") {
                         let parts: Vec<&str> = comment.split_whitespace().collect();
                         if parts.len() >= 3 {
-                            cmd.arg("-metadata").arg(format!("date={}", parts[2].trim_matches('"')));
+                            cmd.arg("-metadata").arg(format!("DATE={}", parts[2].trim_matches('"')));
                         }
                     } else if comment.starts_with("REM GENRE") {
                         let parts: Vec<&str> = comment.split_whitespace().collect();
                         if parts.len() >= 3 {
-                            cmd.arg("-metadata").arg(format!("genre={}", parts[2].trim_matches('"')));
+                            cmd.arg("-metadata").arg(format!("GENRE={}", parts[2].trim_matches('"')));
                         }
                     }
                 }
@@ -197,7 +206,9 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
             
             println!("Splitting track {}...", track.number);
             
-            if !config.dry_run{            
+            if !config.dry_run{
+                
+                
                 let status = cmd.status()?;
                 
                 if !status.success() {
