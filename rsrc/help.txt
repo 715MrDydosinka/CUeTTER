@@ -46,8 +46,7 @@ ENCODING OPTIONS
 
 COVER ART
     -a, --album-cover <file>  Embed album cover image
-                              Maps to: -i {file} -map 1 -c:v copy
-                              (requires ffmpeg with image2 support)
+                              Maps to: -i {file} -map 0:a -map 1:v -c:v png
 
 METADATA
     --skip-metadata           Skip embeding metadata from CUE to output files

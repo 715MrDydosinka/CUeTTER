@@ -102,7 +102,29 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
                 output_files.push(output_path.to_path_buf());
                 continue;
             }
-            
+
+            let mut is_album_presented: bool = false;
+
+            let album_cover = match &config.album_cover{
+                Some(c) => {
+                    if c.is_dir() {
+                        let filenames = ["cover.jpg", "cover.jpeg", "cover.png", "cover.tiff", "1.jpg", "1.jpeg", "1.png"];
+                        filenames.iter().find_map(|name| {
+                            let candidate = c.join(name);
+                            if candidate.is_file() { 
+                                is_album_presented = true;
+                                Some(candidate) 
+                            } else { 
+                                None 
+                            }}).unwrap_or_else(|| c.clone())  
+                    } else {
+                        is_album_presented = true;
+                        c.clone() 
+                    }
+                },
+                None => PathBuf::from(".") 
+            };
+         
             let mut cmd = Command::new("ffmpeg");
 
             if !&config.verbose {
@@ -110,17 +132,30 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
                 cmd.stderr(Stdio::null());
                 cmd.stdout(Stdio::null());
             }
-            
 
-            cmd.arg("-i").arg(format!("{}", audio_path.display().to_string()));
             
             cmd.arg("-ss").arg(effective_start.as_seconds().to_string());
+
+            cmd.arg("-i").arg(format!("{}", audio_path.display().to_string()));
+
+            //HUI
+            if is_album_presented {
+                cmd.arg("-i").arg(format!("{}", album_cover.display().to_string()));
+            }
+            
             
             if let Some(end) = end_time {
                 let duration = end.as_seconds() - effective_start.as_seconds();
                 if duration > 0.0 {
                     cmd.arg("-t").arg(duration.to_string());
                 }
+            }
+
+            if is_album_presented {
+                cmd.arg("-map").arg("0:a").arg("-map").arg("1:v");
+                cmd.arg("-c:v").arg("png");
+                cmd.arg("-disposition:v").arg("attached_pic");
+                cmd.arg("-metadata:s:v").arg("title=\"Album cover\"");
             }
             
             if let Some(bitrate) = &config.bitrate {
@@ -196,6 +231,7 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
             if config.overwrite {
                 cmd.arg("-y");
             }
+
             
             cmd.arg(&output_path);
 
@@ -207,8 +243,6 @@ pub fn split(cue: CueSheet, config: &Config) -> Result<Vec<PathBuf>, Box<dyn std
             println!("Splitting track {}...", track.number);
             
             if !config.dry_run{
-                
-                
                 let status = cmd.status()?;
                 
                 if !status.success() {
